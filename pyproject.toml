@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm[toml]"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rpgt"
+description = "RPG Toolbox"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "docopt",
+    "InquirerPy",
+    'importlib-metadata; python_version>="3.11"',
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = ["black", "isort"]
+
+[tool.setuptools_scm]
+write_to = "rpgt/_version.py"
+
+[tool.setuptools.packages.find]
+include = ["rpgt*"]
+
+[project.scripts]
+rpgt = "rpgt.__main__:main"

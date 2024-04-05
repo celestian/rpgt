@@ -1,0 +1,10 @@
+name: run_tests
+run-name: ${{ github.actor }} is testing pull request
+on: [push]
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: excitedleigh/setup-nox@v2.0.0
+      - run: nox
