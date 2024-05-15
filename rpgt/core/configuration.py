@@ -1,49 +1,36 @@
-import configparser
 import logging
+import sys
+import tomllib
 from pathlib import Path
+
+from rpgt.core.rules_handler import RulesHandler
 
 
 class Config:
-
-    __cgf_tmpl = [
-        "[rpgt]",
-        "# Log level (debug, info, warning, error, critical)",
-        "log_level = info\n",
-        "# Directory where the characters are stored",
-        "char_dir = ./characters\n",
-        "# Directories where the modules are stored (separated by comma)",
-        "mod_dirs = ./modules\n",
-    ]
 
     def __init__(self, args):
         self.__cfg = {}
         self.__cfg_file = Path(args["--cfg"]).resolve()
         self.__parse()
         self.__check()
-        self.__setup_logging()
+        # self.__setup_logging()
 
     def __parse(self):
-        cfg_parser = configparser.ConfigParser()
-
         if not self.__cfg_file.exists():
-            with open(self.__cfg_file, "w", encoding="utf-8") as f:
-                for line in self.__cgf_tmpl:
-                    f.write(line + "\n")
-            print(f"Configuration file [{self.__cfg_file}] created")
-        cfg_parser.read(self.__cfg_file)
-        print(f"Configuration [{self.__cfg_file}] loaded")
+            print(f"Configuration file [{self.__cfg_file}] is missing")
+            sys.exit(1)
 
-        for section in cfg_parser.sections():
-            self.__cfg[section] = {}
-            for key in cfg_parser.options(section):
-                self.__cfg[section][key] = cfg_parser.get(section, key)
+        with open(self.__cfg_file, "rb") as f:
+            self.__cfg = tomllib.load(f)
+        print(f"Configuration [{self.__cfg_file}] loaded")
 
         self.__cfg["rpgt"]["char_dir"] = Path(self.__cfg["rpgt"]["char_dir"]).resolve()
 
-        mod_dirs = self.__cfg["rpgt"]["mod_dirs"].split(",")
-        self.__cfg["rpgt"]["mod_dirs"] = []
-        for directory in mod_dirs:
-            self.__cfg["rpgt"]["mod_dirs"].append(Path(directory.strip()).resolve())
+        self.__cfg["rpgt"]["mod_dirs"] = [
+            Path(dir).resolve() for dir in self.__cfg["rpgt"]["mod_dirs"]
+        ]
+        rules = RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
+        self.__cfg["rules"] = rules.rules
 
     def __check(self):
         def create_dir_if_not_exists(directory):
@@ -51,8 +38,6 @@ class Config:
             if not dir_path.exists():
                 dir_path.mkdir()
 
-        for directory in self.mod_dirs:
-            create_dir_if_not_exists(directory)
         create_dir_if_not_exists(self.char_dir)
 
     def __setup_logging(self):
@@ -79,5 +64,5 @@ class Config:
         return self.__cfg["rpgt"]["char_dir"]
 
     @property
-    def mod_dirs(self):
-        return self.__cfg["rpgt"]["mod_dirs"]
+    def rules(self):
+        return self.__cfg["rules"]
