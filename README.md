@@ -81,5 +81,7 @@ nox
 - [setuptools](https://setuptools.pypa.io/en/latest/userguide/index.html)
 - [nox](https://nox.thea.codes/en/stable/)
 - [behave](https://behave.readthedocs.io)
+- [pexpect](https://pexpect.readthedocs.io/en/stable/)
 - [docopt](http://docopt.org/)
 - [inquirerpy](https://inquirerpy.readthedocs.io/en/latest/index.html)
+- [tomlkit](https://tomlkit.readthedocs.io/en/latest/)
