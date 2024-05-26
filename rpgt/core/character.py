@@ -19,7 +19,7 @@ class Character(Subject, Observer):
         local_vars = {}
         local_vars["character"] = self
         local_vars[element["key"]] = element["key"]
-        local_vars[element["value"]] = element["value"]
+        local_vars["value"] = element["value"]
 
         allowed_names = []
         allowed_names.append("get_attribute")
@@ -28,7 +28,7 @@ class Character(Subject, Observer):
 
         expression = element["action"]
         expression = expression.replace("$name", element["key"])
-        expression = expression.replace("$value", element["value"])
+        expression = expression.replace("$value", "value")
         eval_expression(expression, local_vars, allowed_names)
 
     def set_attribute(self, key, value):
