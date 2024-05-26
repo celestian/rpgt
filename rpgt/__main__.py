@@ -16,11 +16,14 @@ Options:
 
 # import tomllib
 
+import sys
+
 from docopt import docopt
 
 from rpgt._version import __version__
 from rpgt.core.architect import Architect
 from rpgt.core.configuration import Config
+
 # from rpgt.core.latex import prepare_skills
 
 
@@ -38,6 +41,8 @@ def main():
     #     with open(args["--skills"], "rb") as f:
     #         data = tomllib.load(f)
     #         prepare_skills(data)
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":
