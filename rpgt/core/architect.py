@@ -67,8 +67,9 @@ class Architect:
 
         self.__character = Character()
         wizard = Wizard()
-        rules = RulesFactory(wizard.select_rules(self.__cfg))
-        writer = CharacterRecordWriter(rules.rules_module)
+        module_id = wizard.select_rules()
+        rules = RulesFactory(module_id)
+        writer = CharacterRecordWriter(module_id)
 
         wizard.register_observer(writer)
         wizard.register_observer(self.__character)

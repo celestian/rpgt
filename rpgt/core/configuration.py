@@ -13,7 +13,9 @@ class Config:
         self.__cfg_file = Path(args["--cfg"]).resolve()
         self.__parse()
         self.__check()
-        # self.__setup_logging()
+        self.__setup_logging()
+        logging.info("Configuration [%s] loaded" % self.__cfg_file)
+        RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
 
     def __parse(self):
         if not self.__cfg_file.exists():
@@ -22,15 +24,12 @@ class Config:
 
         with open(self.__cfg_file, "rb") as f:
             self.__cfg = tomllib.load(f)
-        print(f"Configuration [{self.__cfg_file}] loaded")
 
         self.__cfg["rpgt"]["char_dir"] = Path(self.__cfg["rpgt"]["char_dir"]).resolve()
 
         self.__cfg["rpgt"]["mod_dirs"] = [
             Path(dir).resolve() for dir in self.__cfg["rpgt"]["mod_dirs"]
         ]
-        rules = RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
-        self.__cfg["rules"] = rules.rules
 
     def __check(self):
         def create_dir_if_not_exists(directory):
@@ -52,17 +51,12 @@ class Config:
 
         logging.basicConfig(
             filename=Path("./rpgt.log"),
-            filemode="a",
+            filemode="w",
             encoding="utf-8",
-            # format="%(levelname)s %(message)s",
-            format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
+            format="%(levelname)s %(message)s",
             level=log_levels[self.__cfg["rpgt"]["log_level"]],
         )
 
     @property
     def char_dir(self):
         return self.__cfg["rpgt"]["char_dir"]
-
-    @property
-    def rules(self):
-        return self.__cfg["rules"]

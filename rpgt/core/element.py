@@ -7,27 +7,30 @@ from InquirerPy.base.control import Choice
 class RuleSection:
 
     def __init__(self, data):
-        self.id = data["section"]
-        self.name = data["section_name"]
-        self.__rules = []
+        self.id = data["id"]
+        self.name = data["name"]
+        self.__elements = []
 
-    def add_rule(self, rule):
-        self.__rules.append(rule)
+    def add_element(self, rule):
+        self.__elements.append(rule)
 
-    def get_rules(self):
-        return self.__rules
+    def get_elements(self):
+        return self.__elements
 
     def applicable(self, character):
         applicable = False
-        for rule in self.__rules:
-            applicable += rule.applicable(character)
+        for element in self.__elements:
+            applicable += element.applicable(character)
         return applicable
 
 
 class ElementABC(ABC):
 
-    def __init__(self, rule):
+    def __init__(self, rule, question):
         self._rule = rule
+        self._question = question["question"]
+        if question["reference"]:
+            self._question += f' (p.{question["reference"]})'
         self._increment = None
 
     def applicable(self, character):
@@ -41,90 +44,56 @@ class ElementABC(ABC):
 
         local_vars = {}
         local_vars["character"] = character
-        local_vars[self._rule["rule_name"]] = self._rule["rule_name"]
+        local_vars[self._rule["id"]] = self._rule["id"]
 
         allowed_names = []
         allowed_names.append("get_attribute")
         allowed_names.extend(local_vars.keys())
 
-        expression = self._rule["rule"]["condition"]["eval"]
-        expression = expression.replace("$name", self._rule["rule"]["property"]["name"])
+        expression = self._rule["condition"]
+        expression = expression.replace("$name", self._rule["id"])
         return eval_expression(expression, local_vars, allowed_names)
 
     @abstractmethod
     def prompt(self):
         raise NotImplementedError
 
-    @abstractmethod
-    def action(self):
-        raise NotImplementedError
-
     @property
-    @abstractmethod
     def increment(self):
-        raise NotImplementedError
+        if self._increment is None:
+            self.prompt()
+
+        increment = {
+            "key": self._rule["id"],
+            "value": self._increment,
+            "type": self._rule["element_type"],
+            "action": self._rule["action"],
+        }
+        return increment
 
 
 class TextElement(ElementABC):
 
     def prompt(self):
-        question = self._rule["rule"]["prompt"]["question"]
-        self._increment = inquirer.text(message=question).execute()
-
-    def action(self):
-        raise NotImplementedError
-
-    @property
-    def increment(self):
-        if self._increment is None:
-            self.prompt()
-
-        increment = {
-            "key": self._rule["rule"]["property"]["name"],
-            "value": self._increment,
-            "type": self._rule["rule"]["property"]["type"],
-            "action": self._rule["rule"]["action"]["eval"],
-        }
-        return increment
+        self._increment = inquirer.text(message=self._question).execute()
 
 
-class ChoiceElement(ElementABC):
+class SelectElement(ElementABC):
 
-    def __init__(self, rule, db=None):
-        super().__init__(rule)
-        self.__db = db
+    def __init__(self, rule, question, answers):
+        super().__init__(rule, question)
         self.__choices = []
-        self.__load_choices()
 
-    def __load_choices(self):
-        table = self._rule["rule"]["prompt"]["choice_table"]
-        rows = self.__db.query(f"SELECT * FROM {table}")
-        for row in rows.fetchall():
-            self.__choices.append(
-                Choice(
-                    row["name"], name=f"{row['name']} -- {row['desc']} | p.{row['ref']}"
-                )
-            )
+        for answer in answers:
+            name = answer["answer"]
+            if answer["description"]:
+                name += f' :: {answer["description"]}'
+            if answer["reference"]:
+                name += f' | (p.{answer["reference"]})'
+            self.__choices.append(Choice(answer["answer"], name=name))
 
     def prompt(self):
-        question = self._rule["rule"]["prompt"]["question"]
         self._increment = inquirer.select(
-            message=question,
+            message=self._question,
             choices=self.__choices,
         ).execute()
-
-    def action(self):
-        raise NotImplementedError
-
-    @property
-    def increment(self):
-        if self._increment is None:
-            self.prompt()
-
-        increment = {
-            "key": self._rule["rule"]["property"]["name"],
-            "value": self._increment,
-            "type": self._rule["rule"]["property"]["type"],
-            "action": self._rule["rule"]["action"]["eval"],
-        }
-        return increment
