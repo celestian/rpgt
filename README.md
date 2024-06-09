@@ -84,4 +84,3 @@ nox
 - [pexpect](https://pexpect.readthedocs.io/en/stable/)
 - [docopt](http://docopt.org/)
 - [inquirerpy](https://inquirerpy.readthedocs.io/en/latest/index.html)
-- [tomlkit](https://tomlkit.readthedocs.io/en/latest/)
