@@ -40,6 +40,7 @@ class ElementABC(ABC):
                 if name not in allowed_names:
                     raise NameError(f"Use of [{name}] not allowed in rules!")
 
+            # pylint: disable-next=eval-used
             return eval(code, {"__builtins__": {}}, local_vars)
 
         local_vars = {}
@@ -70,6 +71,14 @@ class ElementABC(ABC):
             "action": self._rule["action"],
         }
         return increment
+
+    @increment.setter
+    def increment(self, value):
+        self._increment = value
+
+    @property
+    def key(self):
+        return self._rule["id"]
 
 
 class TextElement(ElementABC):

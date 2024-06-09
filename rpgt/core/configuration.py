@@ -4,18 +4,24 @@ import tomllib
 from pathlib import Path
 
 from rpgt.core.rules_handler import RulesHandler
+from rpgt.core.singleton import Singleton
 
 
-class Config:
+class Config(metaclass=Singleton):
 
-    def __init__(self, args):
+    def __init__(self):
         self.__cfg = {}
-        self.__cfg_file = Path(args["--cfg"]).resolve()
-        self.__parse()
-        self.__check()
-        self.__setup_logging()
-        logging.info("Configuration [%s] loaded" % self.__cfg_file)
-        RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
+        self.__cfg_file = None
+
+    def initialize(self, args):
+        if self.__cfg_file is None:
+            self.__cfg_file = Path(args["--cfg"]).resolve()
+
+            self.__parse()
+            self.__check()
+            self.__setup_logging()
+            logging.info("Configuration [%s] loaded", self.__cfg_file)
+            RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
 
     def __parse(self):
         if not self.__cfg_file.exists():

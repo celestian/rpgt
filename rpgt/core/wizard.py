@@ -25,6 +25,6 @@ class Wizard(Subject):
         for section in sections:
             for element in section.get_elements():
                 element.prompt()
-                character.update(element.increment)
+                self.notify_observers(element.increment)
 
         return False

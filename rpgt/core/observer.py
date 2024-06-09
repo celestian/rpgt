@@ -12,7 +12,6 @@ class Subject:
 
     def __init__(self):
         self._observers = []
-        self._update = None
 
     def register_observer(self, observer):
         self._observers.append(observer)
@@ -20,6 +19,6 @@ class Subject:
     def unregister_observer(self, observer):
         self._observers.remove(observer)
 
-    def notify_observers(self):
+    def notify_observers(self, payload):
         for observer in self._observers:
-            observer.update(self._update)
+            observer.update(payload)

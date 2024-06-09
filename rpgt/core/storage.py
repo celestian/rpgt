@@ -1,9 +1,10 @@
 import logging
 import sqlite3
+import sys
 
 from rpgt.core.singleton import Singleton
 
-structure = """
+DB_SCHEME = """
     DROP TABLE IF EXISTS modules;
     DROP TABLE IF EXISTS sections;
     DROP TABLE IF EXISTS elements;
@@ -13,7 +14,8 @@ structure = """
     CREATE TABLE modules (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        version INTEGER NOT NULL
+        version INTEGER NOT NULL,
+        character_name_elememt TEXT NOT NULL
     );
 
     CREATE TABLE sections (
@@ -68,15 +70,18 @@ class DataStorage(metaclass=Singleton):
         self.__connection = sqlite3.connect("./rpgt.db")
         self.__connection.row_factory = dict_factory
         self.__cursor = self.__connection.cursor()
-        self.__create_structure()
+        self.__create_scheme()
 
     def __del__(self):
         self.__cursor.close()
         self.__connection.close()
 
-    def __create_structure(self):
-        logging.info("Database structure created.")
-        self.__cursor.executescript(structure)
+    def _query(self, sql):
+        return self.__cursor.execute(sql)
+
+    def __create_scheme(self):
+        logging.info("Database scheme created.")
+        self.__cursor.executescript(DB_SCHEME)
         self.__connection.commit()
 
     def __insert(self, table, data):
@@ -93,7 +98,14 @@ class DataStorage(metaclass=Singleton):
             line = [current["id"]]
             while True:
                 if current["after"] is not None:
-                    current = [x for x in items if x["id"] == current["after"]][0]
+                    save = current
+                    current = [x for x in items if x["id"] == current["after"]]
+                    if current == []:
+                        err_msg = f"Error: Cannot find [{save['after']}]"
+                        err_msg += f" referenced in [{save['id']}]"
+                        print(err_msg)
+                        sys.exit(0)
+                    current = current[0]
                     line.append(current["id"])
                 else:
                     line.append(current["after"])
@@ -104,18 +116,16 @@ class DataStorage(metaclass=Singleton):
     def __order_sections(self, sections):
         orders = self.__order_items(sections)
         for order in orders:
-            sql = "UPDATE sections SET order_level = {} WHERE id = '{}'".format(
-                order["order_level"], order["id"]
-            )
-            self.query(sql)
+            sql = f"UPDATE sections SET order_level = {order['order_level']} "
+            sql += f"WHERE id = '{order['id']}'"
+            self._query(sql)
 
     def __order_elements(self, elements):
         orders = self.__order_items(elements)
         for order in orders:
-            sql = "UPDATE elements SET order_level = {} WHERE id = '{}'".format(
-                order["order_level"], order["id"]
-            )
-            self.query(sql)
+            sql = f"UPDATE elements SET order_level = {order['order_level']} "
+            sql += f"WHERE id = '{order['id']}'"
+            self._query(sql)
 
     def process(self):
         modules = self.get_modules()
@@ -145,27 +155,34 @@ class DataStorage(metaclass=Singleton):
             self.__insert("answers", answer)
 
     def get_modules(self):
-        return self.query("SELECT * FROM modules").fetchall()
+        return self._query("SELECT * FROM modules").fetchall()
+
+    def get_character_name_element(self, module_id):
+        return self._query(
+            f"SELECT character_name_elememt FROM modules WHERE id = '{module_id}'"
+        ).fetchone()["character_name_elememt"]
 
     def get_sections(self, module_id):
-        return self.query(
-            f"SELECT * FROM sections WHERE module_id = '{module_id}' ORDER BY order_level, name"
-        ).fetchall()
+        sql = f"SELECT * FROM sections WHERE module_id = '{module_id}' "
+        sql += "ORDER BY order_level, name"
+        return self._query(sql).fetchall()
 
     def get_elements(self, section_id):
-        return self.query(
-            f"SELECT * FROM elements WHERE section_id = '{section_id}' ORDER BY order_level, id"
-        ).fetchall()
+        sql = f"SELECT * FROM elements WHERE section_id = '{section_id}' "
+        sql += "ORDER BY order_level, id"
+        return self._query(sql).fetchall()
+
+    def get_element(self, element_id):
+        return self._query(
+            f"SELECT * FROM elements WHERE id = '{element_id}'"
+        ).fetchone()
 
     def get_question(self, element_id):
-        return self.query(
+        return self._query(
             f"SELECT * FROM questions WHERE element_id = '{element_id}'"
         ).fetchone()
 
     def get_answers(self, question_id):
-        return self.query(
+        return self._query(
             f"SELECT * FROM answers WHERE question_id = '{question_id}'"
         ).fetchall()
-
-    def query(self, sql):
-        return self.__cursor.execute(sql)

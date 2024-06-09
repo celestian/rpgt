@@ -24,11 +24,11 @@ class RulesHandler:
                 return False
             return True
 
-        logging.info("Scanning directory: %s" % directory)
+        logging.info("Scanning directory: %s", directory)
         is_main_directory = False
         dir_content = directory.iterdir()
         for file in [x for x in dir_content if x.is_file() and x.suffix == ".toml"]:
-            logging.debug("Scanning file: %s" % file)
+            logging.debug("Scanning file: %s", file)
             with open(file, "rb") as f:
                 data = tomllib.load(f)
                 if not is_valid(data):
@@ -50,16 +50,17 @@ class RulesHandler:
                 self.__scan(subdir)
 
     def __load_module(self, data):
-        logging.info("Loading module: %s" % data["meta"]["name"])
+        logging.info("Loading module: %s", data["meta"]["name"])
         payload = {
             "id": data["meta"]["id"],
             "name": data["meta"]["name"],
             "version": data["meta"]["version"],
+            "character_name_elememt": data["parameters"]["character_name_elememt"],
         }
         self.__db.add_module(payload)
 
     def __load_section(self, data):
-        logging.info("Loading section: %s" % data["meta"]["name"])
+        logging.info("Loading section: %s", data["meta"]["name"])
         payload = {
             "id": data["meta"]["id"],
             "name": data["meta"]["name"],
@@ -69,7 +70,7 @@ class RulesHandler:
         self.__db.add_section(payload)
 
     def __load_element(self, data):
-        logging.info("Loading element: %s" % data["meta"]["key"])
+        logging.info("Loading element: %s", data["meta"]["key"])
         payload = {
             "id": data["meta"]["key"],
             "after": None if "after" not in data["meta"] else data["meta"]["after"],
@@ -117,5 +118,5 @@ class RulesHandler:
                     }
                 )
         elif "answers" in data["prompt"] and "answers" in data:
-            print("Wrong format of answers in element: %s" % data["meta"]["key"])
+            print(f"Wrong format of answers in element: {data['meta']['key']}")
         self.__db.add_question_answers(question, answers)

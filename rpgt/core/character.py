@@ -1,10 +1,9 @@
-from rpgt.core.observer import Observer, Subject
+from rpgt.core.observer import Observer
 
 
-class Character(Subject, Observer):
+class Character(Observer):
 
     def __init__(self):
-        super().__init__()
         self.__attributes = {}
 
     def __apply(self, element):
@@ -14,6 +13,7 @@ class Character(Subject, Observer):
                 if name not in allowed_names:
                     raise NameError(f"Use of [{name}] not allowed in character!")
 
+            # pylint: disable-next=eval-used
             return eval(code, {"__builtins__": {}}, local_vars)
 
         local_vars = {}
@@ -39,5 +39,5 @@ class Character(Subject, Observer):
 
     def update(self, payload):
         self.__apply(payload)
-        self._update = self.__attributes
-        self.notify_observers()
+        print(f"Character received: {payload}")
+        print(f"Character attributes: {self.__attributes}")
