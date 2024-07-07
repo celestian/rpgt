@@ -6,6 +6,8 @@ from pathlib import Path
 from rpgt.core.rules_handler import RulesHandler
 from rpgt.core.singleton import Singleton
 
+LOG = logging.getLogger()
+
 
 class Config(metaclass=Singleton):
 
@@ -19,8 +21,7 @@ class Config(metaclass=Singleton):
 
             self.__parse()
             self.__check()
-            self.__setup_logging()
-            logging.info("Configuration [%s] loaded", self.__cfg_file)
+            LOG.info("Configuration [%s] loaded", self.__cfg_file)
             RulesHandler(self.__cfg["rpgt"]["mod_dirs"])
 
     def __parse(self):
@@ -44,24 +45,6 @@ class Config(metaclass=Singleton):
                 dir_path.mkdir()
 
         create_dir_if_not_exists(self.char_dir)
-
-    def __setup_logging(self):
-
-        log_levels = {
-            "debug": logging.DEBUG,
-            "info": logging.INFO,
-            "warning": logging.WARNING,
-            "error": logging.ERROR,
-            "critical": logging.CRITICAL,
-        }
-
-        logging.basicConfig(
-            filename=Path("./rpgt.log"),
-            filemode="w",
-            encoding="utf-8",
-            format="%(levelname)s %(message)s",
-            level=log_levels[self.__cfg["rpgt"]["log_level"]],
-        )
 
     @property
     def char_dir(self):

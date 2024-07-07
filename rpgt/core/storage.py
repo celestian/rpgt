@@ -4,6 +4,8 @@ import sys
 
 from rpgt.core.singleton import Singleton
 
+LOG = logging.getLogger()
+
 DB_SCHEME = """
     DROP TABLE IF EXISTS modules;
     DROP TABLE IF EXISTS sections;
@@ -80,7 +82,7 @@ class DataStorage(metaclass=Singleton):
         return self.__cursor.execute(sql)
 
     def __create_scheme(self):
-        logging.info("Database scheme created.")
+        LOG.info("Database scheme created.")
         self.__cursor.executescript(DB_SCHEME)
         self.__connection.commit()
 
