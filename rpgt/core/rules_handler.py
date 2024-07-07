@@ -1,4 +1,5 @@
 import logging
+import sys
 import tomllib
 
 from rpgt.core.storage import DataStorage
@@ -23,6 +24,12 @@ class RulesHandler:
             if "type" not in data["meta"]:
                 return False
             return True
+
+        if not directory.is_dir():
+            logging.error("Directory not found: %s", directory)
+            print(f"Error: Directory not found: {directory}")
+            sys.exit(1)
+            return
 
         logging.info("Scanning directory: %s", directory)
         is_main_directory = False
