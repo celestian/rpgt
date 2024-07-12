@@ -13,9 +13,18 @@ class RulesHandler:
         self.__db = DataStorage()
         self.__module_id = None
 
+        modules = []
         for directory in dirs:
             self.__scan(directory)
+            if self.__module_id is None:
+                LOG.warning("No rule module found in directory [%s].", directory)
+            else:
+                modules.append(self.__module_id)
             self.__module_id = None
+
+        if len(modules) == 0:
+            LOG.error("No rule modules found.")
+            sys.exit(1)
         self.__db.process()
 
     def __scan(self, directory):
@@ -28,7 +37,7 @@ class RulesHandler:
             return True
 
         if not directory.is_dir():
-            LOG.error("Module directory not found: %s", directory)
+            LOG.error("Module directory [%s] not found.", directory)
             sys.exit(1)
 
         LOG.info("Scanning directory: %s", directory)

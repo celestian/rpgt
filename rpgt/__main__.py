@@ -30,22 +30,21 @@ from rpgt.core.ui import UI
 def set_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(levelname)s: %(message)s {%(module)s:%(lineno)d}")
+
+    file_formatter = logging.Formatter(
+        "%(levelname)-8s %(lineno)-3d %(module)-20s: %(message)s "
+    )
 
     file_handler = logging.FileHandler(
         filename=Path("./rpgt.log"), mode="w", encoding="utf-8"
     )
     file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(levelname)-8s %(lineno)-3d %(module)-20s: %(message)s "
-    )
-    file_handler.setFormatter(file_formatter)
+    file_handler.setFormatter(formatter)
 
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setLevel(logging.ERROR)
-    stream_formatter = logging.Formatter(
-        "%(levelname)s: %(message)s {%(module)s:%(lineno)d}"
-    )
-    stream_handler.setFormatter(stream_formatter)
+    stream_handler.setFormatter(formatter)
 
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
